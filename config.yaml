@@ -1,4 +1,4 @@
-aggregation_interval: 10
+min_interval: 10
 mqtt:
   host: 192.168.191.14
   port: 1883
@@ -6,6 +6,7 @@ topics:
   - name: gridmeter/sensor/powerconsumecurrent/state
     aggregates: 
     - name: sum
+      interval: 60
     - name: avg
   - name: gridmeter/sensor/powerconsumecounter/state
     aggregates: 

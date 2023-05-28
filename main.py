@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import yaml
 import time
+from datetime import datetime, timedelta
 
 # Dictionary to store collected messages
 message_map = {}
@@ -28,28 +29,47 @@ def on_message(client, userdata, msg):
         userdata["message_map"][topic] = []
 
     # Append the message and timestamp to the array for the corresponding topic
-    userdata["message_map"][topic].append(float(message))
+    userdata["message_map"][topic].append((float(message), time.time()))
 
     # Print the collected message and timestamp
     print(f"Collected message from topic '{topic}': {message}")
 
 def sum_aggregate(messages):
     # Placeholder for sum aggregation
-    return sum(messages)
+    return sum([msg[0] for msg in messages])
 
 def avg_aggregate(messages):
     # Placeholder for average aggregation
-    return sum(messages) / len(messages)
+    values = [msg[0] for msg in messages]
+    return sum(values) / len(values)
 
 def max_aggregate(messages):
     # Placeholder for max aggregation
-    return max(messages)
+    return max([msg[0] for msg in messages])
 
 def aggregate_data(userdata):
-    # Perform aggregation for each topic
+    # Get the minimum interval from the configuration
+    # min_interval = userdata.get("min_interval")
+
+    # Initialize the last_execution dictionary if it doesn't exist
+    if "last_execution" not in userdata:
+        userdata["last_execution"] = {}
+
+    # Determine the maximum interval among all topics and aggregates
+    max_interval = min_interval
     for topic, messages in userdata["message_map"].items():
         topic_config = next((t for t in userdata["topics"] if t["name"] == topic), None)
         if topic_config:
+            for aggregate_config in topic_config.get("aggregates", []):
+                interval = aggregate_config.get("interval", min_interval)
+                max_interval = max(max_interval, interval)
+
+    # Perform aggregation for each topic
+    now = datetime.now()
+    for topic, messages in userdata["message_map"].items():
+        topic_config = next((t for t in userdata["topics"] if t["name"] == topic), None)
+        if topic_config:
+            topic_last_execution = userdata["last_execution"].get(topic, {})
             for aggregate_config in topic_config.get("aggregates", []):
                 aggregate_name = aggregate_config["name"]
                 aggregate_func = None
@@ -61,12 +81,23 @@ def aggregate_data(userdata):
                     aggregate_func = max_aggregate
 
                 if aggregate_func:
-                    aggregate_result = aggregate_func(messages)
-                    print(f"Aggregated result for topic '{topic}' using '{aggregate_name}': {aggregate_result}")
-                    # Add your code to process the aggregate result here
+                    interval = aggregate_config.get("interval", min_interval)
+                    last_execution = topic_last_execution.get(aggregate_name, now - timedelta(seconds=interval))
+                    if now - last_execution >= timedelta(seconds=interval):
+                        start_time = max(last_execution, now - timedelta(seconds=interval))
+                        filtered_messages = [msg for msg in messages if datetime.fromtimestamp(msg[1]) >= start_time]
+                        if filtered_messages:
+                            aggregate_result = aggregate_func(filtered_messages)
+                            print(f"Aggregated result for topic '{topic}' using '{aggregate_name}': {aggregate_result}")
+                            # Add your code to process the aggregate result here
 
-    # Clear the collected messages after aggregation
-    userdata["message_map"] = {}
+                        # Update the last execution timestamp for the topic and aggregate
+                        topic_last_execution[aggregate_name] = now
+                        userdata["last_execution"][topic] = topic_last_execution
+
+    # Clear old messages
+    for topic, messages in userdata["message_map"].items():
+        userdata["message_map"][topic] = [msg for msg in messages if datetime.fromtimestamp(msg[1]) >= now - timedelta(seconds=max_interval)] if max_interval is not None else messages
 
 # Load configuration from YAML file
 with open("config.yaml", "r") as config_file:
@@ -91,8 +122,12 @@ client.loop_start()
 
 # Start the data aggregation loop
 try:
+    min_interval = config["min_interval"]
+
     while True:
-        time.sleep(config["aggregation_interval"])
+        time.sleep(min_interval)
+
+        # Perform aggregation
         aggregate_data(client._userdata)
 
 except KeyboardInterrupt:
