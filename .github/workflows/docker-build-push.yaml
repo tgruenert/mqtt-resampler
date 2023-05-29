@@ -1,0 +1,36 @@
+name: Docker Build & Push
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - created
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push Docker image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        run: |
+          if [[ ${{ github.ref }} == 'refs/tags'* ]]; then
+            # If the event is a tag, use the tag as the Docker image tag
+            DOCKER_TAG=${{ github.ref }}
+          else
+            # If the event is a push to the master branch, use 'latest' as the Docker image tag
+            DOCKER_TAG="latest"
+          fi
+          docker build -t tgruenert/mqtt-resampler:${DOCKER_TAG} .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push tgruenert/mqtt-resampler:${DOCKER_TAG}
