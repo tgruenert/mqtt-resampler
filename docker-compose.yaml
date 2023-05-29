@@ -1,0 +1,9 @@
+version: '3'
+services:
+  mqtt-resampler:
+    image: tgruenert/mqtt-resampler:v1.0
+    build:
+      context: .
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    restart: always
