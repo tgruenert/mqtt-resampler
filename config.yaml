@@ -7,7 +7,9 @@ topics:
     aggregates: 
     - name: sum
       interval: 60
+      topic: gridmeter/sensor/powerconsumecurrent/sum_1m
     - name: avg
   - name: gridmeter/sensor/powerconsumecounter/state
     aggregates: 
     - name: max
+      topic: gridmeter/sensor/powerconsumecounter/max_10s

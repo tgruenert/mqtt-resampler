@@ -47,6 +47,16 @@ def max_aggregate(messages):
     # Placeholder for max aggregation
     return max([msg[0] for msg in messages])
 
+def publish_mqtt(topic, payload):
+    # Configure MQTT client
+    client = mqtt.Client()
+    # Connect to MQTT broker
+    client.connect(config["mqtt"]["host"], config["mqtt"]["port"])
+    # Publish message
+    client.publish(topic, payload)
+    # Disconnect from MQTT broker
+    client.disconnect()    
+
 def aggregate_data(userdata):
     # Get the minimum interval from the configuration
     # min_interval = userdata.get("min_interval")
@@ -89,7 +99,11 @@ def aggregate_data(userdata):
                         if filtered_messages:
                             aggregate_result = aggregate_func(filtered_messages)
                             print(f"Aggregated result for topic '{topic}' using '{aggregate_name}': {aggregate_result}")
-                            # Add your code to process the aggregate result here
+
+                            # Publish the aggregate result to MQTT topic if specified
+                            mqtt_topic = aggregate_config.get("topic")
+                            if mqtt_topic:
+                                publish_mqtt(mqtt_topic, str(aggregate_result))
 
                         # Update the last execution timestamp for the topic and aggregate
                         topic_last_execution[aggregate_name] = now
