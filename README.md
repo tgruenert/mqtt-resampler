@@ -29,7 +29,9 @@ topics:
       - name: sum
         interval: 60
         topic: gridmeter/sensor/powerconsumecurrent/sum_1m
-      - name: avg
+      - name: sum
+        interval: 3600
+        topic: gridmeter/sensor/powerconsumecurrent/sum_1h
       
   - name: gridmeter/sensor/powerconsumecounter/state
     aggregates:
