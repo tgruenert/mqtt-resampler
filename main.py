@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import yaml
+import os
 import time
 from datetime import datetime, timedelta
 
@@ -113,8 +114,9 @@ def aggregate_data(userdata):
     for topic, messages in userdata["message_map"].items():
         userdata["message_map"][topic] = [msg for msg in messages if datetime.fromtimestamp(msg[1]) >= now - timedelta(seconds=max_interval)] if max_interval is not None else messages
 
-# Load configuration from YAML file
-with open("config.yaml", "r") as config_file:
+# Load configuration from YAML file (path can be overridden via CONFIG_FILE)
+config_path = os.environ.get("CONFIG_FILE", "config.yaml")
+with open(config_path, "r") as config_file:
     config = yaml.safe_load(config_file)
 
 # Create an MQTT client
