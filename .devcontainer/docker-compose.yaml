@@ -4,10 +4,12 @@ services:
     volumes:
       - ..:/workspaces/mqtt-resampler:cached
       - claude-config:/home/vscode/.claude
+      - ${HOME}/.ssh/tgruenert-github-private-repos:/run/deploy_key:ro      
     command: sleep infinity
     environment:
       CONFIG_FILE: /workspaces/mqtt-resampler/.devcontainer/config.yaml
       CLAUDE_CONFIG_DIR: /home/vscode/.claude
+      GIT_SSH_COMMAND: ssh -i /home/vscode/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
     depends_on: [mosquitto]
 
   mosquitto:

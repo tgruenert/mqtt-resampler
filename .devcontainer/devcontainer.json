@@ -7,10 +7,13 @@
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
-  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude && pip install -r requirements.txt && sudo apt-get update && sudo apt-get install -y mosquitto-clients",
+  "postCreateCommand": "mkdir -p ~/.ssh && sudo install -m 600 -o vscode -g vscode /run/deploy_key ~/.ssh/deploy_key && sudo chown -R vscode:vscode /home/vscode/.claude && pip install -r requirements.txt && sudo apt-get update && sudo apt-get install -y mosquitto-clients",
   "customizations": {
     "vscode": {
       "extensions": ["ms-python.python", "anthropic.claude-code"]
     }
-  }
+  },
+  "remoteEnv": {
+  "SSH_AUTH_SOCK": ""
+  } 
 }
