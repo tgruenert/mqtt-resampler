@@ -41,6 +41,10 @@ topics:
 
 Make sure to adjust the configuration according to your MQTT broker settings and desired topics/aggregations.
 
+# Development
+
+A ready-to-use development environment (Dev Container with a local Mosquitto broker and Git access via deploy key) is described in [devcontainer.md](devcontainer.md).
+
 # Setup and Usage
 
 1. Clone the repository:
