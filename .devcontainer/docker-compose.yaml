@@ -1,0 +1,13 @@
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/python:3-3.13
+    volumes:
+      - ..:/workspaces/mqtt-resampler:cached
+    command: sleep infinity
+    depends_on: [mosquitto]
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    command: mosquitto -c /mosquitto-no-auth.conf
+    ports:
+      - "1883:1883"
