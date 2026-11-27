@@ -7,7 +7,9 @@ Messages on MQTT need to be plain values. JSON Messages are not supported.
 ## Functionality
 
 - Connects to an MQTT broker and subscribes to specified topics
-- Collects MQTT messages and performs aggregations (sum, average, max) based on the defined intervals
+- Collects MQTT messages and performs aggregations (`sum`, `avg`, `max`) based on the defined intervals. Each aggregate covers a fixed window `[start, start + interval)` aligned to multiples of the interval; an aggregate without `interval` uses `min_interval`. Windows without messages publish nothing.
+- Ignores messages that are not plain numeric values (including `nan`/`inf`)
+- Supports MQTT wildcards (`+`, `#`) in input topics; all matching messages are aggregated together
 - Displays the aggregated results on the console
 - Publishes the aggregated results to MQTT topics (if configured)
 - Supports configuration of topics, aggregation intervals, and MQTT broker settings
